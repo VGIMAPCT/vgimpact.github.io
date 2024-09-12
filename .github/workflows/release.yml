@@ -1,0 +1,34 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    if: startsWith(github.event.head_commit.message, 'Release')
+    permissions: write-all
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate Tag Name
+        id: generate_tag
+        run: |
+          echo "Generating tag name based on the current date and time..."
+          TAG_NAME=$(date +'%y.%m.%d-%I.%M%p')
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
